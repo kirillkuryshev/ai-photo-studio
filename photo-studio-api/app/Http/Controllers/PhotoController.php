@@ -103,6 +103,61 @@ class PhotoController extends Controller
             ->header('Content-Type', $response->header('Content-Type'));
     }
 
+    public function colorize(Request $request)
+    {
+        if (!$request->hasFile('photo')) {
+            return response()->json(['message' => 'Photo is required'], 400);
+        }
+
+        $request->validate(['photo' => 'image']);
+        $photo = $request->file('photo');
+
+        $pathBefore = $photo->store('user_histories', 'public');
+
+        $historyRecord = UserHistory::create([
+            'user_id' => $request->user()->id,
+            'ai_model' => 'Colorize Photos',
+            'status' => 'in_progress',
+            'image_before' => $pathBefore,
+        ]);
+
+        $response = Http::attach(
+            'photo',
+            $photo->get(),
+            $photo->getClientOriginalName()
+        )->post('http://127.0.0.1:8001/colorize');
+
+        if ($response->failed()) {
+            $historyRecord->update([
+                'status' => 'failed'
+            ]);
+
+            return response()->json(
+                ['message' => 'AI service error'],
+                500
+            );
+        }
+
+        $fileNameAfter = Str::random(40) . '.png';
+        $pathAfter = 'user_histories/' . $fileNameAfter;
+
+        Storage::disk('public')->put(
+            $pathAfter,
+            $response->body()
+        );
+
+        $historyRecord->update([
+            'status' => 'completed',
+            'image_after' => $pathAfter,
+        ]);
+
+        return response($response->body())
+            ->header(
+                'Content-Type',
+                $response->header('Content-Type')
+            );
+    }
+
     public function index(Request $request)
     {
         $userHistory = UserHistory::where(

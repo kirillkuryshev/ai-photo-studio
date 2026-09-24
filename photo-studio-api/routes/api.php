@@ -13,6 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/photos/transform', [PhotoController::class, 'transform']);
     Route::post('/photos/upscale-4k', [PhotoController::class, 'upscale4k']);
+    Route::post('/photos/colorize', [PhotoController::class, 'colorize']);
 
     Route::get('/user-history', [PhotoController::class, 'index']);
 });

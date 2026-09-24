@@ -8,21 +8,27 @@ from fastapi.responses import Response
 import uvicorn
 
 from upscaler import RealESRUpscaler, FourKUpscaler, download_model
+from colorize import Colorizer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "models_onnx", "realesr-general-x4v3.onnx")
+COLORIZER_PATH = os.path.join(BASE_DIR, "weights", "colorizer_v10.pt")
 
 app = FastAPI()
 upscaler = None
 upscaler_4k = None
+colorizer = None
 
 @app.on_event("startup")
 def startup_event():
-    global upscaler, upscaler_4k
+    global upscaler, upscaler_4k, colorizer
+
     if not os.path.exists(MODEL_PATH):
         download_model(MODEL_PATH)
+
     upscaler = RealESRUpscaler(MODEL_PATH, scale=4)
     upscaler_4k = FourKUpscaler(MODEL_PATH, scale=4)
+    colorizer = Colorizer(COLORIZER_PATH)
 
 @app.post("/restore")
 async def enhance_image(request: Request):
@@ -100,6 +106,51 @@ async def upscale_4k_image(request: Request):
         raise HTTPException(status_code=500, detail="Ошибка кодирования результата")
 
     return Response(content=buffer.tobytes(), media_type="image/png")
+
+@app.post("/colorize")
+async def colorize_image(request: Request):
+    try:
+        content_type = request.headers.get("content-type", "")
+        contents = None
+
+        if "multipart/form-data" in content_type:
+            form = await request.form()
+
+            for _, field in form.items():
+                if hasattr(field, "file"):
+                    contents = await field.read()
+                    break
+
+            if not contents:
+                raise Exception("Файл не найден внутри формы")
+        else:
+            contents = await request.body()
+
+        if not contents:
+            raise Exception("Получен пустой файл")
+
+    except Exception as e:
+        print(f"Ошибка парсинга colorize: {str(e)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Ошибка чтения файла: {str(e)}",
+        )
+
+    try:
+        result_bytes = colorizer.colorize_bytes(contents)
+    except Exception as e:
+        print(f"Ошибка Colorizer: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка раскрашивания: {str(e)}",
+        )
+
+    return Response(
+        content=result_bytes,
+        media_type="image/png",
+    )
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8001)

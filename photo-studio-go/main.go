@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,6 +21,21 @@ import (
 )
 
 var db *sql.DB
+
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 type ErrorResponse struct {
 	Message string `json:"message"`
@@ -673,6 +689,159 @@ func upscale4K(w http.ResponseWriter, r *http.Request) {
 	w.Write(resultBytes)
 }
 
+func colorize(w http.ResponseWriter, r *http.Request) {
+	userID, err := getUserIDFromToken(r)
+	if err != nil {
+		sendError(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		sendError(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("photo")
+	if err != nil {
+		sendError(w, "Photo is required", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	fileNameBefore := fmt.Sprintf("%d_%s", time.Now().UnixNano(), fileHeader.Filename)
+	pathBefore := "user_histories/" + fileNameBefore
+
+	err = os.MkdirAll("user_histories", 0755)
+	if err != nil {
+		sendError(w, "Failed to create storage directory", http.StatusInternalServerError)
+		return
+	}
+
+	originalFile, err := os.Create(pathBefore)
+	if err != nil {
+		sendError(w, "Failed to save photo", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = io.Copy(originalFile, file)
+	originalFile.Close()
+
+	if err != nil {
+		sendError(w, "Failed to save photo", http.StatusInternalServerError)
+		return
+	}
+
+	historyResult, err := db.Exec(
+		`INSERT INTO user_history
+		(user_id, ai_model, status, image_before, created_at, updated_at)
+		VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))`,
+		userID,
+		"Colorize Photos",
+		"in_progress",
+		pathBefore,
+	)
+	if err != nil {
+		sendError(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	historyID, err := historyResult.LastInsertId()
+	if err != nil {
+		sendError(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	fileBytes, err := os.ReadFile(pathBefore)
+	if err != nil {
+		sendError(w, "Failed to read photo", http.StatusInternalServerError)
+		return
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("photo", fileHeader.Filename)
+	if err != nil {
+		sendError(w, "Failed to prepare photo", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = part.Write(fileBytes)
+	if err != nil {
+		sendError(w, "Failed to prepare photo", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Close()
+
+	request, err := http.NewRequest(
+		http.MethodPost,
+		"http://127.0.0.1:8001/colorize",
+		body,
+	)
+	if err != nil {
+		sendError(w, "AI request error", http.StatusInternalServerError)
+		return
+	}
+
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		db.Exec(
+			"UPDATE user_history SET status = ?, updated_at = datetime('now') WHERE id = ?",
+			"failed",
+			historyID,
+		)
+
+		sendError(w, "AI service error", http.StatusInternalServerError)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		db.Exec(
+			"UPDATE user_history SET status = ?, updated_at = datetime('now') WHERE id = ?",
+			"failed",
+			historyID,
+		)
+
+		sendError(w, "AI service error", http.StatusInternalServerError)
+		return
+	}
+
+	resultBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		sendError(w, "Failed to read AI response", http.StatusInternalServerError)
+		return
+	}
+
+	fileNameAfter := fmt.Sprintf("%d_result.jpg", time.Now().UnixNano())
+	pathAfter := "user_histories/" + fileNameAfter
+
+	err = os.WriteFile(pathAfter, resultBytes, 0644)
+	if err != nil {
+		sendError(w, "Failed to save result", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.Exec(
+		`UPDATE user_history
+		SET status = ?, image_after = ?, updated_at = datetime('now')
+		WHERE id = ?`,
+		"completed",
+		pathAfter,
+		historyID,
+	)
+	if err != nil {
+		sendError(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", response.Header.Get("Content-Type"))
+	w.Write(resultBytes)
+}
+
 func main() {
 	var err error
 	db, err = sql.Open(
@@ -695,8 +864,11 @@ func main() {
 	http.HandleFunc("/api/signup", signup)
 	http.HandleFunc("/api/photos/transform", transformPhoto)
 	http.HandleFunc("/api/photos/upscale-4k", upscale4K)
+	http.HandleFunc("/api/photos/colorize", colorize)
+
+	fileServer := http.FileServer(http.Dir("."))
+	http.Handle("/storage/", http.StripPrefix("/storage/", fileServer))
 
 	fmt.Println("Server is running on port 8000...")
-
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":8000", cors(http.DefaultServeMux))
 }

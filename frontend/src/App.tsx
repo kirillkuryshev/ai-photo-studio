@@ -7,6 +7,7 @@ import { Routes, Route, Link } from 'react-router-dom'
 import RestoreOldPhotos from './RestoreOldPhotos'
 import UpscaleImage from './UpscaleImage'
 import UserHistory from './UserHistory'
+import ColorizePhotos from './ColorizePhotos'
 
 const aiTools = [
   {
@@ -17,7 +18,7 @@ const aiTools = [
   {
     name: 'Colorize Photos',
     description: 'Add color to black and white photos',
-    available: false,
+    available: true,
   },
   {
     name: 'Upscale Image',
@@ -48,7 +49,13 @@ function Home() {
         tool.available ? (
           <Link
             key={tool.name}
-            to={tool.name === 'Upscale Image' ? '/upscale-4k' : '/restore-old-photos'}
+            to={
+              tool.name === 'Upscale Image'
+                ? '/upscale-4k'
+                : tool.name === 'Colorize Photos'
+                  ? '/colorize'
+                  : '/restore-old-photos'
+            }
             className="available-card"
           >
             <h2>{tool.name}</h2>
@@ -109,6 +116,15 @@ function App() {
             <>
               <Home />
               <UpscaleImage />
+            </>
+          }
+        />
+        <Route
+          path="/colorize"
+          element={
+            <>
+              <Home />
+              <ColorizePhotos />
             </>
           }
         />

@@ -1,0 +1,125 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+}
+
+.modal-window {
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+
+  padding: 38px 34px;
+  border-radius: 18px;
+
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+
+  text-align: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+  color: var(--text);
+  font-size: 26px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: var(--surface-hover);
+}
+
+.modal-window h1 {
+  margin-bottom: 10px;
+}
+
+.modal-window p {
+  color: var(--text-dim);
+}
+
+.file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 24px;
+  padding: 12px 20px;
+
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+
+  background: var(--surface-hover);
+  color: var(--text);
+
+  cursor: pointer;
+}
+
+.file-button input {
+  display: none;
+}
+
+.modal-window button:not(.close-button) {
+  margin-top: 22px;
+  padding: 12px 24px;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+
+  background: linear-gradient(
+    180deg,
+    var(--accent-bright),
+    var(--accent)
+  );
+
+  color: var(--accent-ink);
+
+  cursor: pointer;
+}
+
+.modal-window button:not(.close-button):disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+img[alt='Colorized photo'] {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  margin-top: 12px;
+  padding: 10px 10px 26px;
+
+  background: #f5f0e6;
+  border-radius: 4px;
+
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 600px) {
+  .modal-window {
+    padding: 30px 22px;
+  }
+}

@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Login — a single print in a mat, centered on the page.
+   ========================================================================== */
+
+.login {
+  min-height: 100vh;
+  padding: calc(var(--header-height) + 40px) 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login h1 {
+  font-size: 1.9rem;
+  text-align: center;
+}
+
+.login h1,
+.login form,
+.login > p {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 30px 26px 26px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.55);
+}
+
+.login input {
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.login input::placeholder {
+  color: var(--text-faint);
+}
+
+.login input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.login button[type='submit'] {
+  margin-top: 4px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+  box-shadow: 0 8px 20px -8px var(--accent-glow);
+  transition: filter 0.2s var(--ease), transform 0.15s var(--ease);
+}
+
+.login button[type='submit']:hover {
+  filter: brightness(1.06);
+}
+
+.login button[type='submit']:active {
+  transform: translateY(1px);
+}
+
+.login > p {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  min-height: 1.4em;
+}

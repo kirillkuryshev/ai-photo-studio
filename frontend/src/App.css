@@ -1,0 +1,137 @@
+/* ==========================================================================
+   App — the tool catalog. Each card reads like a small mounted print:
+   a hairline frame, a corner tab, and a one-line caption. Available tools
+   sit in full contrast; locked ones sit one stop underexposed.
+   ========================================================================== */
+
+.ai-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: calc(var(--header-height) + 56px) 32px 80px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 980px) {
+  .ai-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .ai-grid {
+    grid-template-columns: 1fr;
+    padding: calc(var(--header-height) + 32px) 20px 56px;
+  }
+}
+
+.available-card,
+.unavailable-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 22px 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* Corner tab — like a photo mounted with a paper corner */
+.available-card::before,
+.unavailable-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  background: var(--border);
+  clip-path: polygon(100% 0, 0 0, 100% 100%);
+  transition: background 0.25s var(--ease);
+}
+
+.available-card h2,
+.unavailable-card h2 {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.available-card p,
+.unavailable-card p {
+  font-size: 0.88rem;
+  margin: 0;
+  color: var(--text-faint);
+}
+
+/* Per-tool marks, matched to the fixed order of the aiTools array */
+.ai-grid > *:nth-child(1) h2::before { content: '◐  '; }
+.ai-grid > *:nth-child(2) h2::before { content: '◑  '; }
+.ai-grid > *:nth-child(3) h2::before { content: '◒  '; }
+.ai-grid > *:nth-child(4) h2::before { content: '◓  '; }
+.ai-grid > *:nth-child(5) h2::before { content: '✦  '; }
+.ai-grid > *:nth-child(6) h2::before { content: '✕  '; }
+
+.ai-grid > * h2::before {
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+/* Available: full contrast, invites interaction */
+.available-card {
+  cursor: pointer;
+  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+    background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+
+.available-card:hover {
+  transform: translateY(-4px) rotate(-0.4deg);
+  border-color: var(--accent-deep);
+  background: var(--surface-hover);
+  box-shadow: 0 18px 34px -16px rgba(0, 0, 0, 0.55), 0 0 0 1px var(--accent-glow);
+}
+
+.available-card:hover::before {
+  background: var(--accent);
+}
+
+.available-card::after {
+  content: 'Open →';
+  margin-top: 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent-bright);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.25s var(--ease);
+}
+
+.available-card:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Unavailable: one stop underexposed, clearly inert */
+.unavailable-card {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.unavailable-card h2::after {
+  content: 'Soon';
+  margin-left: 10px;
+  padding: 2px 9px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+

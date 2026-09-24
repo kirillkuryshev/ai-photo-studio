@@ -1,1 +1,14 @@
 venv/
+venv-dml/
+weights/
+node_modules/
+.env
+*.pth
+*.pt
+*.pyc
+__pycache__/
+dist/
+build/
+
+*.sqlite
+*.onnx

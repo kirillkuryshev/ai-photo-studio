@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Header — a gallery wall-label bar: quiet glass strip, serif wordmark,
+   the amber safelight only ever appears as a hairline underline.
+   ========================================================================== */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  height: var(--header-height);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 9, 8, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Wordmark — first direct child link */
+.header > a {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  white-space: nowrap;
+  transition: color 0.2s var(--ease);
+}
+
+.header > a::after {
+  content: '.';
+  color: var(--accent);
+}
+
+.header > a:hover {
+  color: var(--accent-bright);
+}
+
+/* Tagline — the plain, class-less div sitting between logo and menu */
+.header > div:not(.profile-menu) {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.header > div:not(.profile-menu) p {
+  margin: 0;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+@media (max-width: 760px) {
+  .header > div:not(.profile-menu) {
+    display: none;
+  }
+}
+
+/* Right-hand auth / profile area */
+.profile-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-menu > a {
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  transition: all 0.2s var(--ease);
+}
+
+/* "Sign Up" is the second link: give it the primary, filled treatment */
+.profile-menu > a:last-of-type {
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+  box-shadow: 0 2px 14px -4px var(--accent-glow);
+}
+
+.profile-menu > a:first-of-type:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+
+.profile-menu > a:last-of-type:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 4px 18px -3px var(--accent-glow);
+}
+
+/* Authenticated state: "Profile" trigger button */
+.profile-menu > button {
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.2s var(--ease);
+}
+
+.profile-menu > button:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
+/* Dropdown — revealed on hover/focus of the whole profile area, since
+   there is no open/close state in the component itself. */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease), visibility 0.18s;
+}
+
+.profile-menu:hover .dropdown-menu,
+.profile-menu:focus-within .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  text-align: left;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.dropdown-item:hover {
+  background: var(--surface-strong);
+  color: var(--accent-bright);
+}

@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Signup — same mat, same frame as Login, for a consistent auth pair.
+   ========================================================================== */
+
+.signup {
+  min-height: 100vh;
+  padding: calc(var(--header-height) + 40px) 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signup h1 {
+  font-size: 1.9rem;
+  text-align: center;
+}
+
+.signup h1,
+.signup form,
+.signup > p {
+  width: 100%;
+  max-width: 380px;
+}
+
+.signup form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 30px 26px 26px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.55);
+}
+
+.signup input {
+  padding: 13px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.signup input::placeholder {
+  color: var(--text-faint);
+}
+
+.signup input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.signup button[type='submit'] {
+  margin-top: 4px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent-bright), var(--accent));
+  box-shadow: 0 8px 20px -8px var(--accent-glow);
+  transition: filter 0.2s var(--ease), transform 0.15s var(--ease);
+}
+
+.signup button[type='submit']:hover {
+  filter: brightness(1.06);
+}
+
+.signup button[type='submit']:active {
+  transform: translateY(1px);
+}
+
+.signup > p {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  min-height: 1.4em;
+}
